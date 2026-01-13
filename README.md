@@ -7,31 +7,17 @@ This is nowhere near perfect, I made this in 15 minutes. If you can make it bett
 # How to use
 
 ## 1. Download
+Download the files and place them in a folder somewhere on your computer. Ensure `ffmpeg.exe` is in the same folder.
 
-Download the files and place them in a folder somewhere on your computer.
+## 2. Open Settings
+Simply double-click **WebcamSettings.bat**.
 
-## 2. Find out your webcam name
+* **One Camera:** The script will automatically detect your camera and open the settings dialog immediately.
+* **Multiple Cameras:** If you have more than one device (e.g., OBS Virtual Camera + Logitech), the script will list them. Type the number of the camera you want to configure and press Enter.
 
-Make sure your webcam is connected and launch **whatismycam.bat**. A window like this will appear:
+*Note: You no longer need to manually edit files or look up your camera name; the script handles it for you.*
 
-![What is my cam](readme/whatismycam.png)
-
-Find out what is the exact name of your webcam, for example mine is **c922 Pro Stream Webcam**, copy this somewhere.
-
-## 3. Set your webcam name
-
-Edit the file **webcamdialog.bat** with notepad and change the **cam** variable to your camera name (within the quotes):
-
-    set cam="YOUR WEBCAM NAME"
-    ffmpeg -f dshow -show_video_device_dialog true -i video=%cam%
-
-In my case, I edited the file to:
-
-    set cam="c922 Pro Stream Webcam"
-    ffmpeg -f dshow -show_video_device_dialog true -i video=%cam%
-
-## 4. Place a shortcut on your desktop (optional)
-
-At this point, you can simply launch, by double clicking, the file **launch.bat** and the dialog window will appear. But I suggest you create a shortcut of **launch.bat** on the desktop and launch it from there.
+## 3. Place a shortcut on your desktop (optional)
+You can create a shortcut to `WebcamSettings.bat` on your desktop for quick access.
 
 Voila! Hope it works for you.
