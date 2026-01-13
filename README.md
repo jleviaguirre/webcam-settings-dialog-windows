@@ -9,13 +9,13 @@ This is nowhere near perfect, I made this in 15 minutes. If you can make it bett
 ## 1. Download
 Download the files and place them in a folder somewhere on your computer. Ensure `ffmpeg.exe` is in the same folder.
 
-## 2. Open Settings
-Simply double-click **WebcamSettings.bat**.
+## 2. Run the script to choose camera
+Double-click **Launch.vbs** or run webcamdialog.bat
 
-* **One Camera:** The script will automatically detect your camera and open the settings dialog immediately.
-* **Multiple Cameras:** If you have more than one device (e.g., OBS Virtual Camera + Logitech), the script will list them. Type the number of the camera you want to configure and press Enter.
+* **One Camera:** The settings dialog will appear instantly.
+* **Multiple Cameras:** A window will pop up listing your cameras. Click one and press OK.
 
-*Note: You no longer need to manually edit files or look up your camera name; the script handles it for you.*
+*Note: You no longer need to manually edit files or look up your camera name; the script handles it for you*
 
 ## 3. Place a shortcut on your desktop (optional)
 You can create a shortcut to `WebcamSettings.bat` on your desktop for quick access.
