@@ -1,6 +1,7 @@
-![Dialog](readme/dialog.png)
+<img src="readme/settings.png" height="253" alt="Settings"> <img src="readme/dialog.png" height="253" alt="Dialog">
 
-This is a small script I made to launch the webcam settings dialog directly from Windows (the same dialog as StreamLabs). In my case, the Logitech G HUB application doesn't have all the same settings as this dialog window, that's why it is useful. If you want to adjust more precisely your webcam when you use it for Zoom, Facebook or anything else, this is the script you need.
+This is a small script I made to launch the the default webcam settings dialog window in Windows, a native control panel interface for adjusting camera properties. This specific dialog allows users to manually configure settings such as brightness, contrast, hue, saturation, sharpness, gamma, white balance, and backlight compensation using sliders and numerical inputs. 
+This system dialog is often accessed through specific software (like OBS or StreamLabs) that uses the Windows API, as it is not easily accessible through the standard Windows Settings menu alone
 
 This is nowhere near perfect, I made this in 15 minutes. If you can make it better, please do! The files are heavy because of the ffmpeg executable needed for this to work.
 
