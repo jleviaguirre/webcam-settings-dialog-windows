@@ -1,34 +1,31 @@
 <# :
 @echo off
-:: Force the script to run from the folder it is located in
 cd /d "%~dp0"
-
-:: Launch PowerShell
-PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {[ScriptBlock]::Create((Get-Content '%~f0') -join [Char]10).Invoke()}"
+:: Launch PowerShell Hidden
+PowerShell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command "& {[ScriptBlock]::Create((Get-Content '%~f0') -join [Char]10).Invoke()}"
 exit /b
 #>
 
 # --- POWERSHELL STARTS HERE ---
 
+# Load assembly for GUI
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
 # 1. Setup
-Clear-Host
-$host.UI.RawUI.WindowTitle = "Webcam Selector"
 $localFFmpeg = ".\ffmpeg.exe"
 $ffmpegCommand = ""
 
-# Check for FFmpeg location
 if (Test-Path $localFFmpeg) {
     $ffmpegCommand = $localFFmpeg
 } elseif (Get-Command "ffmpeg" -ErrorAction SilentlyContinue) {
     $ffmpegCommand = "ffmpeg"
 } else {
-    Write-Warning "FFmpeg not found!"
-    Write-Host "Please ensure ffmpeg.exe is in: $((Get-Location).Path)" -ForegroundColor Red
-    Pause; Exit
+    [System.Windows.Forms.MessageBox]::Show("FFmpeg not found! Please check the folder.", "Error", 0, 16)
+    Exit
 }
 
-# 2. Scan for Cameras
-Write-Host "Scanning for video devices..." -ForegroundColor Cyan
+# 2. Scan for Cameras (Hidden)
 $processInfo = New-Object System.Diagnostics.ProcessStartInfo
 $processInfo.FileName = $ffmpegCommand
 $processInfo.Arguments = "-list_devices true -f dshow -i dummy"
@@ -46,13 +43,10 @@ $lines = $output -split "`r`n"
 $captureMode = $false
 
 foreach ($line in $lines) {
-    # Start capturing when we see the Video header
     if ($line -match "DirectShow video devices") { $captureMode = $true; continue }
-    # Stop capturing when we hit the Audio header
     if ($line -match "DirectShow audio devices") { $captureMode = $false; break }
     
     if ($captureMode) {
-        # Regex to find names inside quotes, ignoring "Alternative name" lines
         if ($line -match '\[dshow @ .+?\]\s+\"(.+?)\"') {
             $name = $matches[1]
             if ($line -notmatch "Alternative name") {
@@ -62,38 +56,59 @@ foreach ($line in $lines) {
     }
 }
 
-# 4. Logic: One Camera vs Multiple
-$selectedCam = ""
+# 4. Logic: Selection
+$selectedCam = $null
 
 if ($cameras.Count -eq 0) {
-    Write-Host "No cameras found." -ForegroundColor Red
-    Pause; Exit
+    [System.Windows.Forms.MessageBox]::Show("No cameras found.", "Error", 0, 16)
+    Exit
 }
 elseif ($cameras.Count -eq 1) {
     $selectedCam = $cameras[0]
-    Write-Host "Only one camera found: $selectedCam" -ForegroundColor Green
 }
 else {
-    # Multiple cameras found - Ask user
-    Write-Host "`nMultiple cameras found. Please select one:" -ForegroundColor Yellow
-    for ($i = 0; $i -lt $cameras.Count; $i++) {
-        Write-Host " [$($i+1)] $($cameras[$i])"
-    }
+    # --- BUILD THE CUSTOM GUI ---
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = "Select Webcam"
+    $form.Size = New-Object System.Drawing.Size(350, 220)
+    $form.StartPosition = "CenterScreen"
+    $form.FormBorderStyle = "FixedDialog"
+    $form.MaximizeBox = $false
+    $form.MinimizeBox = $false
+
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(10, 10)
+    $label.Size = New-Object System.Drawing.Size(300, 20)
+    $label.Text = "Please select a camera:"
+
+    $listBox = New-Object System.Windows.Forms.ListBox
+    $listBox.Location = New-Object System.Drawing.Point(10, 35)
+    $listBox.Size = New-Object System.Drawing.Size(315, 100)
+    foreach ($cam in $cameras) { [void] $listBox.Items.Add($cam) }
     
-    $selection = Read-Host "`nEnter number (1-$($cameras.Count))"
-    
-    # Validate input
-    if ($selection -match "^\d+$" -and $selection -le $cameras.Count -and $selection -gt 0) {
-        $selectedCam = $cameras[$selection - 1]
-    } else {
-        Write-Host "Invalid selection. Exiting." -ForegroundColor Red
-        Pause; Exit
+    # Select first item by default
+    if ($listBox.Items.Count -gt 0) { $listBox.SelectedIndex = 0 }
+
+    $okButton = New-Object System.Windows.Forms.Button
+    $okButton.Location = New-Object System.Drawing.Point(120, 145)
+    $okButton.Size = New-Object System.Drawing.Size(90, 30)
+    $okButton.Text = "OK"
+    $okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form.AcceptButton = $okButton
+
+    $form.Controls.Add($label)
+    $form.Controls.Add($listBox)
+    $form.Controls.Add($okButton)
+
+    # Show the dialog
+    $result = $form.ShowDialog()
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+        $selectedCam = $listBox.SelectedItem
     }
 }
 
 # 5. Open the Dialog
-Write-Host "`nOpening settings for: $selectedCam" -ForegroundColor Green
-& $ffmpegCommand -f dshow -show_video_device_dialog true -i video="$selectedCam" 2> $null
-
-# Brief pause to ensure command executes
-Start-Sleep -Seconds 1
+if ($selectedCam) {
+    & $ffmpegCommand -f dshow -show_video_device_dialog true -i video="$selectedCam" 2> $null
+}
